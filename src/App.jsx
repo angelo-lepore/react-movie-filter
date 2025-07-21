@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Importa gli stili di Bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -8,13 +8,33 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 // Importa l'array
 import film from "./db/film";
 
+// Importa i componenti
+import AppHeader from "./components/AppHeader";
+import FilterControls from "./components/FilterControls";
+import FilmList from "./components/FilmList";
+import FilmForm from "./components/FilmForm";
+
 // Funzione principale dell'app
 function App() {
   // Variabile che contiene la lista dei film
   const [FilmArray, setFilmArray] = useState(film);
-  // Variabile che contiene il testo scritto dall'utente
+  // Variabili che contengono il testo scritto dall'utente
   const [newTitle, setNewTitle] = useState("");
   const [newGenre, setNewGenre] = useState("");
+  // Variabile che contiene il genere selezionato per il filtro
+  const [selectedGenre, setSelectedGenre] = useState("");
+  // Variabile che contiene la lista dei film filtrati
+  const [filteredFilms, setFilteredFilms] = useState(film);
+
+  // Effetto che aggiorna la lista dei film filtrati in base al genere selezionato
+  useEffect(() => {
+    if (!selectedGenre) {
+      setFilteredFilms(FilmArray); // Mostra tutti i film
+    } else {
+      const filtered = FilmArray.filter((film) => film.genre === selectedGenre);
+      setFilteredFilms(filtered); // Mostra solo i film del genere selezionato
+    }
+  }, [selectedGenre, FilmArray]);
 
   // Funzione che gestisce l'invio del form
   function handleSubmit(e) {
@@ -32,67 +52,33 @@ function App() {
   }
 
   // Funzione per eliminare un prodotto dall'elenco
-  function handleDeleteClick(index) {
-    const updatedArray = FilmArray.filter((_, i) => i !== index);
+  function handleDeleteClick(id) {
+    const updatedArray = FilmArray.filter((_, i) => _.id !== id);
     setFilmArray(updatedArray); // Aggiorna la lista togliendo il film cliccato
   }
 
   return (
     <>
-      <div>
-        <h1 className="text-center my-4">Film List</h1>
-      </div>
-      <div className="container">
-        {/* Lista dei film */}
-        <ul className="list-group mb-4">
-          {FilmArray.map((filmItem, index) => (
-            <li
-              key={index}
-              className="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <div>
-                <strong>{filmItem.title}</strong> <br />
-                <small className="text-muted">{filmItem.genre}</small>
-              </div>
-              <button
-                type="button"
-                className="btn btn-danger btn-sm"
-                onClick={() => handleDeleteClick(index)}
-              >
-                <i className="bi bi-trash"></i>
-              </button>
-            </li>
-          ))}
-        </ul>
+      <AppHeader />
 
-        {/* Form per aggiungere un nuovo film */}
-        <form onSubmit={handleSubmit}>
-          <div className="row g-2">
-            <div className="col-md-5">
-              <input
-                className="form-control"
-                placeholder="Titolo del film"
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-              />
-            </div>
-            <div className="col-md-5">
-              <input
-                className="form-control"
-                placeholder="Genere"
-                type="text"
-                value={newGenre}
-                onChange={(e) => setNewGenre(e.target.value)}
-              />
-            </div>
-            <div className="col-md-2">
-              <button type="submit" className="btn btn-primary w-100">
-                <i className="bi bi-save2"></i>
-              </button>
-            </div>
-          </div>
-        </form>
+      <div className="container">
+        <FilterControls
+          selectedGenre={selectedGenre}
+          setSelectedGenre={setSelectedGenre}
+        />
+
+        <FilmList
+          filteredFilms={filteredFilms}
+          handleDeleteClick={handleDeleteClick}
+        />
+
+        <FilmForm
+          newTitle={newTitle}
+          setNewTitle={setNewTitle}
+          newGenre={newGenre}
+          setNewGenre={setNewGenre}
+          handleSubmit={handleSubmit}
+        />
       </div>
     </>
   );
